@@ -5,6 +5,7 @@ import (
 	"strings";
 )
 
+// http://tools.ietf.org/html/rfc2812#section-2.3
 type Message struct {
 	Prefix, Command, Params string;
 	args []string; // Param string args.
