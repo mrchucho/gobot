@@ -18,7 +18,7 @@ func NewMessage(prefix, command, params string) *Message {
 }
 
 func (self *Message) String() string {
-	return fmt.Sprintf("[%s][%s] %s", self.Prefix, self.Command, self.Params);
+	return fmt.Sprintf("[%s][%s][%s]", self.Prefix, self.Command, self.Params);
 }
 
 func (self *Message) Args(index int) string {
@@ -30,7 +30,7 @@ func (self *Message) Args(index int) string {
 			self.args[i] = a;
 		}
 		end := len(self.args);
-		self.args[end-1] = self.Params[colonAt+1:len(self.Params)-1];
+		self.args[end-1] = self.Params[colonAt+1:len(self.Params)];
 	}
 	return self.args[index];
 }

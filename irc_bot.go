@@ -59,17 +59,21 @@ func (self *Bot) getServerInput(reader *bufio.Reader, quit chan bool) {
 	self.request <- self.parse(line);
 }
 
+// Parse the message [Prefix (OPTIONAL)][Command][Parameters] and remove \r\n
 func (self *Bot) parse(msg string) (ircMessage *irc.Message) {
-	var prefix, command, params string;
-	// EOF checking...
-	params = msg[0:len(msg)-1]; // chomp 
-	if strings.HasPrefix(msg, ":") {
-		prefix = params[1:strings.Index(params, " ")];
-		params = params[len(prefix)+2:len(params)];
+	parsedMsg := strings.Split(msg, " ", 3);
+	if len(parsedMsg) == 3 {
+		ircMessage = irc.NewMessage(
+				parsedMsg[0][1:len(parsedMsg[0])],
+				parsedMsg[1],
+				parsedMsg[2][0:len(parsedMsg[2])-2]);
+	} else {
+		ircMessage = irc.NewMessage(
+				"", // No Prefix
+				parsedMsg[0],
+				parsedMsg[1][0:len(parsedMsg[1])-1]);
 	}
-	command = params[0:strings.Index(params, " ")];
-	params = params[len(command)+1:len(params)];
-	return irc.NewMessage(prefix, command, params);
+	return;
 }
 
 func (self *Bot) send(command string) {
