@@ -6,7 +6,6 @@ import (
 	"log";
 	"strconv";
 	"strings";
-	"fmt";
 )
 
 // RFC 2812
@@ -39,20 +38,19 @@ func (self *Client) Process(msg *irc.Message, quit chan bool) {
 				quit <- true
 			case "PRIVMSG":
 				log.Stdoutf("*** Heard %s say \"%s\" in %s\n", msg.Prefix, msg.Args(2), msg.Args(0));
-				if is, from := self.isForMe(msg); is {
-					// Just do some silly echoing.
-					self.bot.Say(fmt.Sprintf("You said \"%s\".", msg.Args(2)), from);
-				}
+				self.bot.Handle(msg);
 			case "QUIT":
 				log.Stdoutf("*** %s quit.\n", msg.Args(2));
 			case "PART":
 				log.Stdoutf("*** %s left %s.\n", msg.Args(2), msg.Args(0));
 			default:
-				log.Stderrf("*** Invalid Command: %s.\n", msg.Command);
+				// TODO most stuff isn't implemented yet, so just ignore.
+				// log.Stderrf("*** Invalid Command: %s.\n", msg.Command);
 		}
 	}
 }
 
+// FIXME - unused
 func (self *Client) isForMe(msg *irc.Message) (forMe bool, from string) {
 	if msg.Args(0) == self.bot.Nick {
 		forMe = true;

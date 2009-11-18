@@ -110,7 +110,35 @@ func (self *Bot) Say(what, where string) {
 	self.send(fmt.Sprintf("PRIVMSG %s :%s", where, what));
 }
 
+// FIXME is this even right?
 func (self *Bot) Quit(why string) {
-	self.send(fmt.Sprintf("QUIT :%s", why));
+	self.send(fmt.Sprintf("QUIT : %s", why));
 }
 
+// ----------------- "Command Handlers" ------------------------
+func (self *Bot) Handle(msg *irc.Message) {
+	if command, args, where := msg.GetCommand(&self.Nick); command != nil {
+		handlers := map[string]func([]string) {
+			"hello": func(args []string){
+				self.Say(fmt.Sprintf("Hi, %s!", msg.Prefix), *where);
+			},
+			"version": func(args []string){
+				self.Say("Version 0.0 Alpha", *where);
+			},
+			"join": func(args []string){
+				self.Join(args[0]);
+			},
+			"quit": func(args []string){
+				self.Quit("Leaving because you asked.");
+			},
+			"sleep": func(args []string){ // prove you can multi-task, gobot!
+				self.Say("Going to sleep...", *where);
+				syscall.Sleep(10e9);
+				self.Say("Awoke!", *where);
+			},
+		};
+		if f, ok := handlers[*command]; ok {
+			f(args);
+		}
+	}
+}
