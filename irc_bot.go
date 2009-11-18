@@ -62,8 +62,8 @@ func (self *Bot) parse(msg string) (ircMessage *irc.Message) {
 	// EOF checking...
 	params = msg[0:len(msg)-1]; // chomp 
 	if strings.HasPrefix(msg, ":") {
-		prefix = params[0:strings.Index(params, " ")];
-		params = params[len(prefix)+1:len(params)];
+		prefix = params[1:strings.Index(params, " ")];
+		params = params[len(prefix)+2:len(params)];
 	}
 	command = params[0:strings.Index(params, " ")];
 	params = params[len(command)+1:len(params)];
@@ -79,6 +79,7 @@ func (self *Bot) sendNow(command string) {
 }
 
 func (self *Bot) write(message string) {
+	// enforce IRC 512 char. limit...
 	log.Stdoutf("--> %s\n", message);
 	self.Connection.Write(strings.Bytes(message + "\r\n"));
 }
@@ -95,4 +96,8 @@ func (self *Bot) Join(channel string) {
 
 func (self *Bot) Pong(pong string) {
 	self.send(fmt.Sprintf("PONG %s", pong));
+}
+
+func (self *Bot) Say(what, where string) {
+	self.send(fmt.Sprintf("PRIVMSG %s :%s", where, what));
 }

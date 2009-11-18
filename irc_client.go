@@ -5,6 +5,8 @@ import (
 	"./irc_bot";
 	"log";
 	"strconv";
+	"strings";
+	"fmt";
 )
 
 type Client struct {
@@ -32,7 +34,13 @@ func (self *Client) Process(msg *irc.Message, quit chan bool) {
 				log.Stdoutf("*** %s is leaving %s\n", msg.Args(1), msg.Args(0));
 				quit <- true
 			case "PRIVMSG":
-				log.Stdoutf("*** Heard %s say \"%s\" to %s in %s\n", msg.Prefix, msg.Args(2), msg.Args(1), msg.Args(0));
+				log.Stdoutf("*** Heard %s say \"%s\" in %s\n", msg.Prefix, msg.Args(2), msg.Args(0));
+				// Just do some silly echoing.
+				if msg.Args(0) == self.bot.Nick {
+					self.bot.Say(fmt.Sprintf("You said \"%s\".", msg.Args(2)), msg.Prefix);
+				} else if strings.HasPrefix(msg.Args(2), self.bot.Nick+":") {
+					self.bot.Say(fmt.Sprintf("You said \"%s\".", msg.Args(2)), msg.Args(0));
+				}
 			case "QUIT":
 				log.Stdoutf("*** %s quit.\n", msg.Args(2));
 			case "PART":
