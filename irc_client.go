@@ -9,6 +9,11 @@ import (
 	"fmt";
 )
 
+// RFC 2812
+const (
+	RPL_ENDOFMOTD = 376;
+)
+
 type Client struct {
 	bot *irc_bot.Bot;
 }
@@ -17,13 +22,12 @@ func NewClient(bot *irc_bot.Bot) *Client {
 	return &Client{bot};
 }
 
-
 func (self *Client) Process(msg *irc.Message, quit chan bool) {
 	log.Stdoutf("<-- %v\n", msg);
 	c, err := strconv.Atoi(msg.Command);
 	if err == nil {
 		switch c {
-			case 376:
+			case RPL_ENDOFMOTD:
 				self.bot.Join(self.bot.Channel);
 		}
 	} else {
@@ -35,19 +39,31 @@ func (self *Client) Process(msg *irc.Message, quit chan bool) {
 				quit <- true
 			case "PRIVMSG":
 				log.Stdoutf("*** Heard %s say \"%s\" in %s\n", msg.Prefix, msg.Args(2), msg.Args(0));
-				// Just do some silly echoing.
-				if msg.Args(0) == self.bot.Nick {
-					self.bot.Say(fmt.Sprintf("You said \"%s\".", msg.Args(2)), msg.Prefix);
-				} else if strings.HasPrefix(msg.Args(2), self.bot.Nick+":") {
-					self.bot.Say(fmt.Sprintf("You said \"%s\".", msg.Args(2)), msg.Args(0));
+				if is, from := self.isForMe(msg); is {
+					// Just do some silly echoing.
+					self.bot.Say(fmt.Sprintf("You said \"%s\".", msg.Args(2)), from);
 				}
 			case "QUIT":
 				log.Stdoutf("*** %s quit.\n", msg.Args(2));
 			case "PART":
 				log.Stdoutf("*** %s left %s.\n", msg.Args(2), msg.Args(0));
+			default:
+				log.Stderrf("*** Invalid Command: %s.\n", msg.Command);
 		}
 	}
 }
+
+func (self *Client) isForMe(msg *irc.Message) (forMe bool, from string) {
+	if msg.Args(0) == self.bot.Nick {
+		forMe = true;
+		from  = msg.Prefix;
+	} else if strings.HasPrefix(msg.Args(2), self.bot.Nick+":") {
+		forMe = true;
+		from  = msg.Args(0);
+	} // else if HasPrefix("!")
+	return;
+}
+
 /*
 prefix - "who", e.g.
 	:server.net - a message from the server

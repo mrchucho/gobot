@@ -12,6 +12,8 @@ import (
 const (
 		CarriageReturn = 0x0A;
 		LineFeed = 0x0D;
+		Space = 0x20;
+		Colon = 0x3B;
 )
 
 type Bot struct {
@@ -101,3 +103,8 @@ func (self *Bot) Pong(pong string) {
 func (self *Bot) Say(what, where string) {
 	self.send(fmt.Sprintf("PRIVMSG %s :%s", where, what));
 }
+
+func (self *Bot) Quit(why string) {
+	self.send(fmt.Sprintf("QUIT :%s", why));
+}
+

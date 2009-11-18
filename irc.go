@@ -7,7 +7,7 @@ import (
 
 type Message struct {
 	Prefix, Command, Params string;
-	args []string;
+	args []string; // Param string args.
 }
 
 func NewMessage(prefix, command, params string) *Message {
@@ -23,7 +23,6 @@ func (self *Message) String() string {
 func (self *Message) Args(index int) string {
 	// needs error handling
 	if self.args == nil {
-		// self.args = new([3]string);
 		self.args = make([]string, 3);
 		colonAt := strings.Index(self.Params, ":");
 		for i, a := range(strings.Split(self.Params[0:colonAt], " ", 0)) {
