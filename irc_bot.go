@@ -1,26 +1,28 @@
 package irc_bot
 
 import (
-		"./irc";
-		"net";
-		"log";
-		"bufio";
-		"strings";
-		"fmt";
+	"./irc";
+	"net";
+	"log";
+	"bufio";
+	"strings";
+	"fmt";
 )
 
+import "syscall";
+
 const (
-		CarriageReturn = 0x0A;
-		LineFeed = 0x0D;
-		Space = 0x20;
-		Colon = 0x3B;
+	CarriageReturn = 0x0A;
+	LineFeed = 0x0D;
+	Space = 0x20;
+	Colon = 0x3B;
 )
 
 type Bot struct {
-		Nick, User, Mode, RealName, Channel string;
-		Connection *net.Conn;
-		request  chan *irc.Message;
-		response chan string;
+	Nick, User, Mode, RealName, Channel string;
+	Connection *net.Conn;
+	request  chan *irc.Message;
+	response chan string;
 }
 
 // accept os.Args
@@ -84,8 +86,8 @@ func (self *Bot) sendNow(command string) {
 	self.write(command);
 }
 
+// FIXME enforce IRC 512 char. limit...
 func (self *Bot) write(message string) {
-	// enforce IRC 512 char. limit...
 	log.Stdoutf("--> %s\n", message);
 	self.Connection.Write(strings.Bytes(message + "\r\n"));
 }
