@@ -1,76 +1,41 @@
 package irc
 
 import (
-		"net";
-		"log";
-		"bufio";
-		"strings";
-		"strconv";
-		fmt "fmt";
+	"fmt";
+	"strings";
 )
 
-const (
-		CarriageReturn = 0x0A;
-		LineFeed = 0x0D;
-)
-
-type Irc struct {
-		Nick, User, Mode, RealName string;
-		Connection net.Conn;
+type Message struct {
+	Prefix, Command, Params string;
+	args []string;
 }
 
-func (self *Irc) Run() {
-	self.login();
-	reader := bufio.NewReader(self.Connection);
-	for {
-		line, err := reader.ReadString(CarriageReturn);
-		if err != nil {
-			log.Stderr("ERROR Reading: ", err);
-			break
+func NewMessage(prefix, command, params string) *Message {
+	// maybe parse Args here
+	// set from, to, channel
+	return &(Message{Prefix: prefix, Command: command, Params:params});
+}
+
+func (self *Message) String() string {
+	return fmt.Sprintf("[%s][%s] %s", self.Prefix, self.Command, self.Params);
+}
+
+func (self *Message) Args(index int) string {
+	// needs error handling
+	if self.args == nil {
+		// self.args = new([3]string);
+		self.args = make([]string, 3);
+		colonAt := strings.Index(self.Params, ":");
+		for i, a := range(strings.Split(self.Params[0:colonAt], " ", 0)) {
+			self.args[i] = a;
 		}
-		self.handle(self.parse(line));
+		end := len(self.args);
+		self.args[end-1] = self.Params[colonAt+1:len(self.Params)-1];
 	}
+	return self.args[index];
 }
 
-func (self *Irc) login() {
-	self.send(fmt.Sprintf("NICK %s", self.Nick));
-	self.send(fmt.Sprintf("USER %s %s %s %s", self.User, self.Mode, "*", self.RealName));
+type Client interface {
+	Process(*Message, chan bool);
 }
 
-func (self *Irc) handle(prefix string, command string, params string) {
-	log.Stdoutf("<-- [%s][%s] %s\n", prefix, command, params);
-	c, err := strconv.Atoi(command);
-	if err == nil {
-		switch c {
-			case 376:
-				log.Stdout("*** Greeting ended, join.");
-				self.send("JOIN #test");
-		}
-	} else {
-		log.Stdout("*** Not a numeric command: ", command);
-		// this is where we'll handle commands
-		switch command {
-			case "PING":
-				self.send(fmt.Sprintf("PONG %s", params));
-			case "KICK":
-				log.Stdout("*** Leaving");
-			return
-		}
-	}
-}
-
-func (self *Irc) parse(msg string) (prefix string, command string, params string) {
-	params = msg[0:len(msg)-1]; // chomp 
-	if strings.HasPrefix(msg, ":") {
-		prefix = params[0:strings.Index(params, " ")];
-		params = params[len(prefix)+1:len(params)];
-	}
-	command = params[0:strings.Index(params, " ")];
-	params = params[len(command)+1:len(params)];
-	return
-}
-
-func (self *Irc) send(command string) {
-	log.Stdoutf("--> %s\n", command);
-	self.Connection.Write(strings.Bytes(command + "\r\n"));
-}
