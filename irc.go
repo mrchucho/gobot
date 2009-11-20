@@ -9,8 +9,8 @@ import (
 // http://tools.ietf.org/html/rfc2812#section-2.3
 type Message struct {
 	Prefix, Command, Params string;
-	args		[]string; // Param string args.
-	re			*regexp.Regexp;
+	args []string; // Param string args.
+	re *regexp.Regexp;
 }
 
 func NewMessage(prefix, command, params string) *Message {
@@ -40,9 +40,7 @@ func (self *Message) Args(index int) string {
 
 // FIXME and/or merge w/ Args... also return :from
 func (self *Message) GetCommand(nick *string) (command *string, args []string, where *string) {
-	if self.re == nil {
-		self.re = regexp.MustCompile(`^(.*) :((.*):?) (.*)$`);
-	}
+	if self.re == nil { self.re = regexp.MustCompile(`^(.*) :((.*):?) (.*)$`); }
 	m := self.re.MatchStrings(self.Params);
 	if len(m) >= 4 && m[3] == *nick {
 		command_and_args := strings.Split(m[4], " ", 0);

@@ -7,6 +7,7 @@ import (
 	"bufio";
 	"strings";
 	"fmt";
+	"regexp";
 )
 
 import "syscall";
@@ -23,6 +24,7 @@ type Bot struct {
 	Connection *net.Conn;
 	request  chan *irc.Message;
 	response chan string;
+	re *regexp.Regexp;
 }
 
 // accept os.Args
@@ -57,23 +59,32 @@ func (self *Bot) getServerInput(reader *bufio.Reader, quit chan bool) {
 	if err != nil {
 		log.Stderr("ERROR Reading: ", err);
 		quit <- true;
+	} else {
+		self.request <- self.parse(line);
 	}
-	self.request <- self.parse(line);
 }
 
 // Parse the message [Prefix (OPTIONAL)][Command][Parameters] and remove \r\n
 func (self *Bot) parse(msg string) (ircMessage *irc.Message) {
-	parsedMsg := strings.Split(msg, " ", 3);
-	if len(parsedMsg) == 3 {
+	if self.re == nil { self.re = regexp.MustCompile(`^(NOTICE|ERROR) (.*)$`); }
+	if parsedMsg := self.re.MatchStrings(msg); len(parsedMsg) == 3 {
 		ircMessage = irc.NewMessage(
-				parsedMsg[0][1:len(parsedMsg[0])],
+				"",
 				parsedMsg[1],
 				parsedMsg[2][0:len(parsedMsg[2])-2]);
 	} else {
-		ircMessage = irc.NewMessage(
-				"", // No Prefix
-				parsedMsg[0],
-				parsedMsg[1][0:len(parsedMsg[1])-1]);
+		parsedMsg := strings.Split(msg, " ", 3);
+		if len(parsedMsg) == 3 {
+			ircMessage = irc.NewMessage(
+					parsedMsg[0][1:len(parsedMsg[0])],
+					parsedMsg[1],
+					parsedMsg[2][0:len(parsedMsg[2])-2]);
+		} else {
+			ircMessage = irc.NewMessage(
+					"", // No Prefix
+					parsedMsg[0],
+					parsedMsg[1][0:len(parsedMsg[1])-1]);
+		}
 	}
 	return;
 }
