@@ -30,7 +30,7 @@ type Bot struct {
 }
 
 func NewBot(nick, user, mode, realname, channel string, connection *net.Conn) *Bot {
-	bot := &Bot{Nick:nick, User:user, RealName:realname, Channel: channel, Connection: connection};
+	bot := &Bot{Nick:nick, User:user, Mode: mode, RealName:realname, Channel: channel, Connection: connection};
 	bot.re = regexp.MustCompile(`^(NOTICE|ERROR) (.*)$`);
 	bot.makeHandlerMap();
 	return bot;
