@@ -22,14 +22,21 @@ const (
 type Bot struct {
 	Nick, User, Mode, RealName, Channel string;
 	Connection *net.Conn;
-	request  chan *irc.Message;
+
+	request chan *irc.Message;
 	response chan string;
 	re *regexp.Regexp;
+	handlers map[string]func(*irc.Message, []string, *string);
 }
 
-// accept os.Args
 func NewBot(nick, user, mode, realname, channel string, connection *net.Conn) *Bot {
-	return &Bot{Nick:nick, User:user, Mode:mode, RealName:realname, Channel:channel, Connection:connection};
+	bot := new(Bot);
+	bot.Nick, bot.User, bot.Mode, bot.RealName, bot.Channel =
+		nick, user, mode, realname, channel;
+	bot.Connection = connection;
+	bot.re = regexp.MustCompile(`^(NOTICE|ERROR) (.*)$`);
+	bot.makeHandlerMap();
+	return bot;
 }
 
 func (bot *Bot) Run(client *irc.Client) {
@@ -66,7 +73,6 @@ func (self *Bot) getServerInput(reader *bufio.Reader, quit chan bool) {
 
 // Parse the message [Prefix (OPTIONAL)][Command][Parameters] and remove \r\n
 func (self *Bot) parse(msg string) (ircMessage *irc.Message) {
-	if self.re == nil { self.re = regexp.MustCompile(`^(NOTICE|ERROR) (.*)$`); }
 	if parsedMsg := self.re.MatchStrings(msg); len(parsedMsg) == 3 {
 		ircMessage = irc.NewMessage(
 				"",
@@ -123,33 +129,37 @@ func (self *Bot) Say(what, where string) {
 
 // FIXME is this even right?
 func (self *Bot) Quit(why string) {
-	self.send(fmt.Sprintf("QUIT : %s", why));
+	self.send(fmt.Sprintf("QUIT :%s", why));
 }
 
 // ----------------- "Command Handlers" ------------------------
+func (self *Bot) makeHandlerMap() {
+	self.handlers = map[string]func(*irc.Message, []string, *string) {
+		"hello": func(msg *irc.Message, args []string, where *string){
+			self.Say(fmt.Sprintf("Hi, %s!", msg.Prefix), *where);
+		},
+		"version": func(msg *irc.Message, args []string, where *string){
+			self.Say("Version 0.0 Alpha", *where);
+		},
+		"join": func(msg *irc.Message, args []string, where *string){
+			self.Join(args[0]);
+		},
+		"quit": func(msg *irc.Message, args []string, where *string){
+			self.Quit("Leaving because you asked.");
+		},
+		"sleep": func(msg *irc.Message, args []string, where *string){
+			// prove you can multi-task, gobot!
+			self.Say("Going to sleep...", *where);
+			syscall.Sleep(10e9);
+			self.Say("Awoke!", *where);
+		},
+	};
+}
+
 func (self *Bot) Handle(msg *irc.Message) {
 	if command, args, where := msg.GetCommand(&self.Nick); command != nil {
-		handlers := map[string]func([]string) {
-			"hello": func(args []string){
-				self.Say(fmt.Sprintf("Hi, %s!", msg.Prefix), *where);
-			},
-			"version": func(args []string){
-				self.Say("Version 0.0 Alpha", *where);
-			},
-			"join": func(args []string){
-				self.Join(args[0]);
-			},
-			"quit": func(args []string){
-				self.Quit("Leaving because you asked.");
-			},
-			"sleep": func(args []string){ // prove you can multi-task, gobot!
-				self.Say("Going to sleep...", *where);
-				syscall.Sleep(10e9);
-				self.Say("Awoke!", *where);
-			},
-		};
-		if f, ok := handlers[*command]; ok {
-			f(args);
+		if f, ok := self.handlers[*command]; ok {
+			f(msg, args, where);
 		}
 	}
 }
