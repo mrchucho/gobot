@@ -52,8 +52,3 @@ func (self *Message) GetCommand(nick *string) (command *string, args []string, w
 	}
 	return
 }
-
-// FIXME not sure
-// type IrcClient interface {
-// 	Process(*Message, chan bool);
-// }
