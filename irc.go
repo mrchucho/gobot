@@ -1,4 +1,4 @@
-package irc
+package gobot
 
 import (
 	"fmt";
@@ -29,7 +29,7 @@ func (self *Message) Args(index int) string {
 	if self.args == nil {
 		self.args = make([]string, 3);
 		colonAt := strings.Index(self.Params, ":");
-		for i, a := range(strings.Split(self.Params[0:colonAt], " ", 0)) {
+		for i, a := range(strings.Split(self.Params[0:colonAt], " ")) {
 			self.args[i] = a;
 		}
 		end := len(self.args);
@@ -41,9 +41,9 @@ func (self *Message) Args(index int) string {
 // FIXME and/or merge w/ Args... also return :from
 func (self *Message) GetCommand(nick *string) (command *string, args []string, where *string) {
 	if self.re == nil { self.re = regexp.MustCompile(`^(.*) :((.*):?) (.*)$`); }
-	m := self.re.MatchStrings(self.Params);
+	m := self.re.FindAllString(self.Params, -1);
 	if len(m) >= 4 && m[3] == *nick {
-		command_and_args := strings.Split(m[4], " ", 0);
+		command_and_args := strings.Split(m[4], " ");
 		command = &command_and_args[0];
 		args	= command_and_args[1:len(command_and_args)];
 		where	= &m[1];
@@ -51,7 +51,8 @@ func (self *Message) GetCommand(nick *string) (command *string, args []string, w
 	return;
 }
 
-type Client interface {
-	Process(*Message, chan bool);
-}
+// FIXME not sure
+// type IrcClient interface {
+// 	Process(*Message, chan bool);
+// }
 
