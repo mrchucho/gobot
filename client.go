@@ -3,7 +3,6 @@ package gobot
 import (
 	"log"
 	"strconv"
-	"strings"
 )
 
 // RFC 2812
