@@ -19,7 +19,7 @@ const (
 
 type Bot struct {
 	Nick, User, Mode, RealName, Channel string
-	Connection                          net.Conn
+	Connection                          *net.Conn
 
 	request  chan *Message
 	response chan string
@@ -27,7 +27,7 @@ type Bot struct {
 	handlers map[string]func(*Message, []string, *string)
 }
 
-func NewBot(nick, user, mode, realname, channel string, connection net.Conn) *Bot {
+func NewBot(nick, user, mode, realname, channel string, connection *net.Conn) *Bot {
 	bot := &Bot{Nick: nick, User: user, Mode: mode, RealName: realname, Channel: channel, Connection: connection}
 	bot.re = regexp.MustCompile(`^(NOTICE|ERROR) (.*)$`)
 	bot.makeHandlerMap()
@@ -38,7 +38,7 @@ func (bot *Bot) Run(client *Client) {
 	quit := make(chan bool)
 	bot.request = make(chan *Message)
 	bot.response = make(chan string)
-	reader := bufio.NewReader(bot.Connection)
+	reader := bufio.NewReader(*bot.Connection)
 
 	bot.Login()
 
@@ -101,7 +101,7 @@ func (self *Bot) sendNow(command string) {
 // FIXME enforce IRC 512 char. limit...
 func (self *Bot) write(message string) {
 	log.Printf("--> %s\n", message)
-	self.Connection.Write([]byte(message + "\r\n"))
+	fmt.Fprintf(*self.Connection, "%s\r\n", message)
 }
 
 // ------------------ IRC COMMANDS --------------------
