@@ -50,7 +50,7 @@ func (self *Client) Process(msg *Message, quit chan bool) {
 	}
 }
 
-// FIXME - unused
+/* TODO - unused
 func (self *Client) isForMe(msg *Message) (forMe bool, from string) {
 	if msg.Args(0) == self.bot.Nick {
 		forMe = true
@@ -61,6 +61,7 @@ func (self *Client) isForMe(msg *Message) (forMe bool, from string) {
 	} // else if HasPrefix("!")
 	return
 }
+*/
 
 /*
 prefix - "who", e.g.
