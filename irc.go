@@ -43,7 +43,7 @@ func (self *Message) GetCommand(nick *string) (command *string, args []string, w
 	if self.re == nil {
 		self.re = regexp.MustCompile(`^(.*) :((.*):?) (.*)$`)
 	}
-	m := self.re.FindAllString(self.Params, -1)
+	m := self.re.FindStringSubmatch(self.Params)
 	if len(m) >= 4 && m[3] == *nick {
 		command_and_args := strings.Split(m[4], " ")
 		command = &command_and_args[0]
