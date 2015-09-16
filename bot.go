@@ -127,10 +127,7 @@ func (self *Bot) makeHandlerMap() {
 }
 
 func (self *Bot) Handle(msg *Message) {
-	// FIXME see message.go - this will eventually return or use the message
-	// itself w/ cmd, args, where in that... also, could indicate if the
-	// "recipient" is "nick"
-	if command, args := msg.GetCommand(&self.Nick); command != nil {
+	if nick, command, args := msg.GetCommand(); *nick == self.Nick && command != nil {
 		if f, ok := self.handlers[*command]; ok {
 			f(msg, args)
 		}
