@@ -43,7 +43,7 @@ func NewMessage(msg string) *Message {
 			return &(Message{
 				Prefix: "", // No Prefix
 				Command: parsedMsg[0],
-				Params: parsedMsg[1][0:len(parsedMsg[1])-1]})
+				Params: parsedMsg[1][0:len(parsedMsg[1])-2]})
 		}
 	}
 }
