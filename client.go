@@ -25,7 +25,6 @@ func (self *Client) Process(msg *Message, quit chan bool) {
 	if err == nil {
 		switch c {
 		case ERR_NOMOTD, RPL_ENDOFMOTD:
-			log.Printf("Joining %s", self.bot.Channel)
 			self.bot.Join(self.bot.Channel)
 		}
 	} else {
@@ -60,17 +59,4 @@ func (self *Client) isForMe(msg *Message) (forMe bool, from string) {
 	} // else if HasPrefix("!")
 	return
 }
-*/
-
-/*
-prefix - "who", e.g.
-	:server.net - a message from the server
-	:nick!~user@ip.address.net - message from a user
-
-command - ### or IRC_COMMAND
-params: usually of the format:
-	<recipient> :<contents>
-	#channel :blah blah blah
-	user :blah blah blah
-	#channel user : --- as in KICK
 */

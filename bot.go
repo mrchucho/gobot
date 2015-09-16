@@ -23,13 +23,11 @@ type Bot struct {
 
 	request  chan *Message
 	response chan string
-	re       *regexp.Regexp
 	handlers map[string]func(*Message, []string, *string)
 }
 
 func NewBot(nick, user, mode, realname, channel string, connection *net.Conn) *Bot {
 	bot := &Bot{Nick: nick, User: user, Mode: mode, RealName: realname, Channel: channel, Connection: connection}
-	bot.re = regexp.MustCompile(`^(NOTICE|ERROR) (.*)$`)
 	bot.makeHandlerMap()
 	return bot
 }
@@ -62,32 +60,8 @@ func (self *Bot) getServerInput(reader *bufio.Reader, quit chan bool) {
 		log.Printf("ERROR Reading: ", err)
 		quit <- true
 	} else {
-		self.request <- self.parse(line)
+		self.request <- NewMessage(line)
 	}
-}
-
-// Parse the message [Prefix (OPTIONAL)][Command][Parameters] and remove \r\n
-func (self *Bot) parse(msg string) (ircMessage *Message) {
-	if parsedMsg := self.re.FindAllString(msg, -1); len(parsedMsg) == 3 {
-		ircMessage = NewMessage(
-			"",
-			parsedMsg[1],
-			parsedMsg[2][0:len(parsedMsg[2])-2])
-	} else {
-		parsedMsg := strings.SplitN(msg, " ", 3)
-		if len(parsedMsg) == 3 {
-			ircMessage = NewMessage(
-				parsedMsg[0][1:len(parsedMsg[0])],
-				parsedMsg[1],
-				parsedMsg[2][0:len(parsedMsg[2])-2])
-		} else {
-			ircMessage = NewMessage(
-				"", // No Prefix
-				parsedMsg[0],
-				parsedMsg[1][0:len(parsedMsg[1])-1])
-		}
-	}
-	return
 }
 
 func (self *Bot) send(command string) {
