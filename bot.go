@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -23,7 +22,7 @@ type Bot struct {
 
 	request  chan *Message
 	response chan string
-	handlers map[string]func(*Message, []string, *string)
+	handlers map[string]func(*Message, []string)
 }
 
 func NewBot(nick, user, mode, realname, channel string, connection *net.Conn) *Bot {
@@ -102,32 +101,38 @@ func (self *Bot) Quit(why string) {
 
 // ----------------- "Command Handlers" ------------------------
 func (self *Bot) makeHandlerMap() {
-	self.handlers = map[string]func(*Message, []string, *string){
-		"hello": func(msg *Message, args []string, where *string) {
-			self.Say(fmt.Sprintf("Hi, %s!", msg.Prefix), *where)
+	self.handlers = map[string]func(*Message, []string){
+		"hello": func(msg *Message, args []string) {
+			self.Say(fmt.Sprintf("Hi, %s!", msg.Prefix), msg.Where())
 		},
-		"version": func(msg *Message, args []string, where *string) {
-			self.Say("Version 0.0 Alpha", *where)
+		"version": func(msg *Message, args []string) {
+			self.Say("Version 0.0 Alpha", msg.Where())
 		},
-		"join": func(msg *Message, args []string, where *string) {
+		"join": func(msg *Message, args []string) {
 			self.Join(args[0])
 		},
-		"quit": func(msg *Message, args []string, where *string) {
+		"quit": func(msg *Message, args []string) {
 			self.Quit("Leaving because you asked.")
 		},
-		"sleep": func(msg *Message, args []string, where *string) {
+		"sleep": func(msg *Message, args []string) {
 			// prove you can multi-task, gobot!
-			self.Say("Going to sleep...", *where)
+			self.Say("Going to sleep...", msg.Where())
 			time.Sleep(10e9)
-			self.Say("Awoke!", *where)
+			self.Say("Awoke!", msg.Where())
+		},
+		"echo": func(msg *Message, args []string) {
+			self.Say(strings.Join(args, " "), msg.Where())
 		},
 	}
 }
 
 func (self *Bot) Handle(msg *Message) {
-	if command, args, where := msg.GetCommand(&self.Nick); command != nil {
+	// FIXME see message.go - this will eventually return or use the message
+	// itself w/ cmd, args, where in that... also, could indicate if the
+	// "recipient" is "nick"
+	if command, args := msg.GetCommand(&self.Nick); command != nil {
 		if f, ok := self.handlers[*command]; ok {
-			f(msg, args, where)
+			f(msg, args)
 		}
 	}
 }

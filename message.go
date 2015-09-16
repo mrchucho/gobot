@@ -68,16 +68,33 @@ func (self *Message) Args(index int) string {
 }
 
 // FIXME and/or merge w/ Args... also return :from
-func (self *Message) GetCommand(nick *string) (command *string, args []string, where *string) {
+// FIXME "Command" is a bad name... this isn't the Command, it's the
+// "instruction" to nick.
+/*
+#test :gobot hello
+*/
+// Maybe create another class... instruction? or do we even care if it's to
+// nick?
+// this should return the thing w/ command/args/where OR decorate that part of
+// the Message
+func (self *Message) GetCommand(nick *string) (command *string, args []string) {
 	if self.re == nil {
-		self.re = regexp.MustCompile(`^(.*) :((.*):?) (.*)$`)
+		//						      1      2       3       4
+		//						      where :nick    command args
+		self.re = regexp.MustCompile(`^(.*) :(\w+)\s*(\w+)\s*(.*)$`)
 	}
 	m := self.re.FindStringSubmatch(self.Params)
-	if len(m) >= 4 && m[3] == *nick {
-		command_and_args := strings.Split(m[4], " ")
-		command = &command_and_args[0]
-		args = command_and_args[1:len(command_and_args)]
-		where = &m[1]
+	if len(m) >= 3 && m[2] == *nick {
+		command = &m[3]
+		args = strings.Split(m[4], " ")
 	}
 	return
+}
+
+func (self *Message) Where() string {
+	return self.Args(0)
+}
+
+func (self *Message) Content() string {
+	return self.Args(2)
 }
