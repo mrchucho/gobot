@@ -72,7 +72,7 @@ func (self *Bot) sendNow(command string) {
 	self.write(command)
 }
 
-// FIXME enforce IRC 512 char. limit...
+// TODO enforce IRC 512 char. limit...
 func (self *Bot) write(message string) {
 	log.Printf("--> %s\n", message)
 	fmt.Fprintf(*self.Connection, "%s\r\n", message)
@@ -96,7 +96,6 @@ func (self *Bot) Say(what, where string) {
 	self.send(fmt.Sprintf("PRIVMSG %s :%s", where, what))
 }
 
-// FIXME is this even right?
 func (self *Bot) Quit(why string) {
 	self.send(fmt.Sprintf("QUIT :%s", why))
 }
