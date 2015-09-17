@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -16,13 +17,28 @@ const (
 	Colon          = 0x3B
 )
 
+type Handler interface {
+	Handle(msg *Message) bool
+}
+
+type BotHandler struct {
+	Bot	*Bot
+	Matcher *regexp.Regexp
+}
+
+func (self *BotHandler) Matchs(msg *Message) ([]string, bool)  {
+	matchs := self.Matcher.FindStringSubmatch(msg.Content())
+	return matchs, len(matchs) != 0
+}
+
 type Bot struct {
 	Nick, User, Mode, RealName, Channel string
 	Connection                          *net.Conn
+	Handlers							[]Handler
 
 	request  chan *Message
 	response chan string
-	handlers map[string]func(*Message, []string)
+	_handlers map[string]func(*Message, []string)
 }
 
 func NewBot(nick, user, mode, realname, channel string, connection *net.Conn) *Bot {
@@ -101,7 +117,7 @@ func (self *Bot) Quit(why string) {
 
 // ----------------- "Command Handlers" ------------------------
 func (self *Bot) makeHandlerMap() {
-	self.handlers = map[string]func(*Message, []string){
+	self._handlers = map[string]func(*Message, []string){
 		"hello": func(msg *Message, args []string) {
 			self.Say(fmt.Sprintf("Hi, %s!", msg.Prefix), msg.Where())
 		},
@@ -126,10 +142,23 @@ func (self *Bot) makeHandlerMap() {
 	}
 }
 
+/*
+func (self *Bot) handle(msg *Message, args []string, where *string) {
+	log.Printf("*** Handle \"%s\" with %d args: %s\n", msg, len(msg.args), strings.Join(msg.args, ","))
+	if matched, _ := regexp.MatchString("^foo$", msg.Command); matched {
+		log.Println("ok")
+	}
+}
+*/
+
 func (self *Bot) Handle(msg *Message) {
 	if nick, command, args := msg.GetCommand(); *nick == self.Nick && command != nil {
-		if f, ok := self.handlers[*command]; ok {
+		if f, ok := self._handlers[*command]; ok {
 			f(msg, args)
+		}
+	} else {
+		for _, h := range(self.Handlers) {
+			go h.Handle(msg)
 		}
 	}
 }
