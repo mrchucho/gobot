@@ -25,19 +25,21 @@ func NewLinks(bot *gobot.Bot) *Links {
 }
 
 func (self *Links) Handle(msg *gobot.Message) bool {
-	if url, ok := self.Matchs(msg); ok {
-		resp, err := http.Get(url[1])
-		if err == nil {
-			defer resp.Body.Close()
-			if body, err := ioutil.ReadAll(resp.Body); err == nil {
-				link := fmt.Sprintf(
-					"%s -=[ %s ]=-",
-					html.EscapeString(string(self.reTitle.FindSubmatch(body)[1])),
-					url[1])
-				self.Bot.Say(link, msg.Where())
-			}
+	url, ok := self.Matchs(msg)
+	if !ok {
+		return false
+	}
+	resp, err := http.Get(url[1])
+	if err == nil {
+		defer resp.Body.Close()
+		if body, err := ioutil.ReadAll(resp.Body); err == nil {
+			link := fmt.Sprintf(
+				"%s -=[ %s ]=-",
+				html.EscapeString(string(self.reTitle.FindSubmatch(body)[1])),
+				url[1])
+			self.Bot.Say(link, msg.Where())
+			return true
 		}
-		return true
 	}
 	return false
 }
