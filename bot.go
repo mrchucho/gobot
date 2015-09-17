@@ -36,8 +36,8 @@ type Bot struct {
 	Connection                          *net.Conn
 	Handlers                            []Handler
 
-	request   chan *Message
-	response  chan string
+	request  chan *Message
+	response chan string
 	commands map[string]func(*Message, []string)
 }
 
