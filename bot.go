@@ -22,11 +22,11 @@ type Handler interface {
 }
 
 type BotHandler struct {
-	Bot	*Bot
+	Bot     *Bot
 	Matcher *regexp.Regexp
 }
 
-func (self *BotHandler) Matchs(msg *Message) ([]string, bool)  {
+func (self *BotHandler) Matchs(msg *Message) ([]string, bool) {
 	matchs := self.Matcher.FindStringSubmatch(msg.Content())
 	return matchs, len(matchs) != 0
 }
@@ -34,10 +34,10 @@ func (self *BotHandler) Matchs(msg *Message) ([]string, bool)  {
 type Bot struct {
 	Nick, User, Mode, RealName, Channel string
 	Connection                          *net.Conn
-	Handlers							[]Handler
+	Handlers                            []Handler
 
-	request  chan *Message
-	response chan string
+	request   chan *Message
+	response  chan string
 	_handlers map[string]func(*Message, []string)
 }
 
@@ -157,7 +157,7 @@ func (self *Bot) Handle(msg *Message) {
 			f(msg, args)
 		}
 	} else {
-		for _, h := range(self.Handlers) {
+		for _, h := range self.Handlers {
 			go h.Handle(msg)
 		}
 	}

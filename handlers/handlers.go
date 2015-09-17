@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"github.com/mrchucho/gobot"
-	"regexp"
-	"net/http"
-	"io/ioutil"
-	"html"
 	"fmt"
+	"github.com/mrchucho/gobot"
+	"html"
+	"io/ioutil"
+	"net/http"
+	"regexp"
 )
 
 type Links struct {
@@ -23,11 +23,11 @@ func NewLinks(bot *gobot.Bot) *Links {
 }
 
 func (self *Links) Handle(msg *gobot.Message) bool {
-	if url, ok := self.Matchs(msg) ; ok {
+	if url, ok := self.Matchs(msg); ok {
 		resp, err := http.Get(url[1])
 		if err == nil {
 			defer resp.Body.Close()
-			if body, err := ioutil.ReadAll(resp.Body) ; err == nil {
+			if body, err := ioutil.ReadAll(resp.Body); err == nil {
 				link := fmt.Sprintf(
 					"%s -=[ %s ]=-",
 					html.EscapeString(string(self.reTitle.FindSubmatch(body)[1])),

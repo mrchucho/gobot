@@ -29,21 +29,21 @@ func NewMessage(msg string) *Message {
 	noticeRe := regexp.MustCompile(`^(NOTICE|ERROR) (.*)$`)
 	if parsedMsg := noticeRe.FindAllString(msg, -1); len(parsedMsg) == 3 {
 		return &(Message{
-			Prefix: "",
+			Prefix:  "",
 			Command: parsedMsg[1],
-			Params: parsedMsg[2][0:len(parsedMsg[2])-2]})
+			Params:  parsedMsg[2][0 : len(parsedMsg[2])-2]})
 	} else {
 		parsedMsg := strings.SplitN(msg, " ", 3)
 		if len(parsedMsg) == 3 {
 			return &(Message{
-				Prefix: parsedMsg[0][1:len(parsedMsg[0])],
+				Prefix:  parsedMsg[0][1:len(parsedMsg[0])],
 				Command: parsedMsg[1],
-				Params: parsedMsg[2][0:len(parsedMsg[2])-2]})
+				Params:  parsedMsg[2][0 : len(parsedMsg[2])-2]})
 		} else {
 			return &(Message{
-				Prefix: "", // No Prefix
+				Prefix:  "", // No Prefix
 				Command: parsedMsg[0],
-				Params: parsedMsg[1][0:len(parsedMsg[1])-2]})
+				Params:  parsedMsg[1][0 : len(parsedMsg[1])-2]})
 		}
 	}
 }
