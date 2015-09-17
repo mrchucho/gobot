@@ -38,7 +38,7 @@ type Bot struct {
 
 	request   chan *Message
 	response  chan string
-	_handlers map[string]func(*Message, []string)
+	commands map[string]func(*Message, []string)
 }
 
 func NewBot(nick, user, mode, realname, channel string, connection *net.Conn) *Bot {
@@ -117,7 +117,7 @@ func (self *Bot) Quit(why string) {
 
 // ----------------- "Command Handlers" ------------------------
 func (self *Bot) makeHandlerMap() {
-	self._handlers = map[string]func(*Message, []string){
+	self.commands = map[string]func(*Message, []string){
 		"hello": func(msg *Message, args []string) {
 			self.Say(fmt.Sprintf("Hi, %s!", msg.Prefix), msg.Where())
 		},
@@ -142,18 +142,9 @@ func (self *Bot) makeHandlerMap() {
 	}
 }
 
-/*
-func (self *Bot) handle(msg *Message, args []string, where *string) {
-	log.Printf("*** Handle \"%s\" with %d args: %s\n", msg, len(msg.args), strings.Join(msg.args, ","))
-	if matched, _ := regexp.MatchString("^foo$", msg.Command); matched {
-		log.Println("ok")
-	}
-}
-*/
-
 func (self *Bot) Handle(msg *Message) {
 	if nick, command, args := msg.GetCommand(); *nick == self.Nick && command != nil {
-		if f, ok := self._handlers[*command]; ok {
+		if f, ok := self.commands[*command]; ok {
 			f(msg, args)
 		}
 	} else {
