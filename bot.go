@@ -31,10 +31,18 @@ func (self *BotHandler) Matchs(msg *Message) ([]string, bool) {
 	return matchs, len(matchs) != 0
 }
 
+type HandlerCollection []Handler
+
+func (handlers HandlerCollection) Handle(msg *Message) {
+	for _, h := range handlers {
+		go h.Handle(msg)
+	}
+}
+
 type Bot struct {
 	Nick, User, Mode, RealName, Channel string
 	Connection                          *net.Conn
-	Handlers                            []Handler
+	Handlers                            HandlerCollection
 
 	request  chan *Message
 	response chan string
@@ -148,8 +156,6 @@ func (self *Bot) Handle(msg *Message) {
 			f(msg, args)
 		}
 	} else {
-		for _, h := range self.Handlers {
-			go h.Handle(msg)
-		}
+		self.Handlers.Handle(msg)
 	}
 }
