@@ -10,16 +10,18 @@ import (
 )
 
 type Links struct {
-	gobot.BotHandler
+	*gobot.BotHandler
 	reTitle *regexp.Regexp
 }
 
 func NewLinks(bot *gobot.Bot) *Links {
-	links := &Links{}
-	links.Bot = bot
-	links.Matcher = regexp.MustCompile(`^.*(https?://\S+).*$`)
-	links.reTitle = regexp.MustCompile(`<\s*?title\s*?>(.*)<\s*?\/title\s*?>`)
-	return links
+	return &Links{
+		BotHandler: &gobot.BotHandler{
+			Bot:     bot,
+			Matcher: regexp.MustCompile(`^.*(https?://\S+).*$`),
+		},
+		reTitle: regexp.MustCompile(`<\s*?title\s*?>(.*)<\s*?\/title\s*?>`),
+	}
 }
 
 func (self *Links) Handle(msg *gobot.Message) bool {
